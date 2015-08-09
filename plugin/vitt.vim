@@ -1,6 +1,6 @@
 function! NewTask()
   let logstart = s:LogStart_SmashPos()
-  call s:s:TryCursor(logstart, 1)
+  call s:TryCursor(logstart, 1)
   let n = search('^\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d[-+]\d\d\d\d' . "\t" . '\d\+' . "\tnew\t-$", 'W')
   if n == 0
     let nextid = 1
@@ -11,14 +11,14 @@ function! NewTask()
   endif
   let newtask = nextid . "\tnew\t-"
   call s:TryAppend(0, newtask)
-  call s:s:TryCursor(1, 1)
+  call s:TryCursor(1, 1)
   execute "normal! $"
   call s:Log(getline('.'))
   return nextid
 endfunction
 
 function! SetTaskState(newstate)
-  call s:SavePosInTask(function("s:s:SetTaskState_SmashPos"), a:newstate)
+  call s:SavePosInTask(function("s:SetTaskState_SmashPos"), a:newstate)
 endfunction
 
 function! ReplaceTaskState(from, to)
