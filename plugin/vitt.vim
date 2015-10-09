@@ -1,3 +1,23 @@
+function! NewTaskExclusiveRunning()
+  call NewTask()
+  call SetTaskExclusiveRunning()
+endfunction
+
+function! SetTaskExclusiveRunning()
+  call s:SavePosInTask(function("s:ReplaceAllTaskState_SmashPos"), "running", "waiting")
+  call SetTaskState("running")
+endfunction
+
+function! s:ReplaceAllTaskState_SmashPos(from, to)
+  let logstart = s:LogStart_SmashPos()
+  let n = 1
+  while n < logstart
+    call s:TryCursor(n, 1)
+    call s:ReplaceTaskState_SmashPos(a:from, a:to)
+    let n = n+1
+  endwhile
+endfunction
+
 function! NewTask()
   let logstart = s:LogStart_SmashPos()
   call s:TryCursor(logstart, 1)
