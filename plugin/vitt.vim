@@ -37,7 +37,7 @@ endfunction
 function! s:ReplaceTaskState_SmashPos(from, to)
   if a:from ==# s:TaskAttr('state', s:ParseTask(getline('.')))
     call s:SetTaskState_SmashPos(a:to)
-  fi
+  endif
 endfunction
 
 function! s:ParseTask(line)
