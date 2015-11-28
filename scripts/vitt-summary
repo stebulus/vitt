@@ -1,0 +1,88 @@
+#!/bin/bash
+set -e
+set -o pipefail
+set -u
+
+if [ "${1:-""}" == --hash ]; then
+  shift
+  MODE=hash
+else
+  MODE=exact
+fi
+
+START=$(date +%F -d "${1:-today}")
+END=$(date +%F -d "${2:-today}")
+
+function filter() {
+  case "$MODE" in
+    exact)
+      cat
+      ;;
+    hash)
+      awk -F'\t' -v OFS='\t' '
+        $3 ~ /#/ {
+          match($3,/#[^ ]*/)
+          $1 = substr($3,RSTART,RLENGTH)
+        }
+        { print $0 }
+        ' |
+      sort -k1,1 |
+      awk -F'\t' -v OFS='\t' '
+        NR == 1 {
+          k = $1
+          total = 0
+        }
+        $1 == k {
+          total = total + $2
+          descr = $3
+        }
+        $1 != k {
+          print k, total, descr
+          k = $1
+          total = $2
+          descr = $3
+        }
+        END {
+          print k, total, descr
+        }
+        '
+      ;;
+    *)
+      echo "$0: internal error: unknown mode '$MODE'" >&2
+      exit 2
+  esac
+}
+
+sed -e '1,/^-- log$/d' ~/work.tl |
+awk -v start="$START" -v end="$END" 'BEGIN { print start " fence"; print end "~fence"; } { print }' |
+LC_ALL=C sort |
+sed -e '0,/^[^\t]* fence$/d' -e '/^[^\t]*~fence$/,$d' |
+(while IFS='	' read d rest; do
+  echo -n $(date -d "$d" +%s)
+  echo "	$rest"
+done) |
+awk -F'\t' -v OFS='\t' '
+  $3 == "new" { a[$2] = 0 }
+  (a[$2] != 0 || !($2 in a)) && $3 != "running" {
+    if ($2 in a) {
+      b[$2] += $1 - a[$2]
+    }
+    a[$2] = 0
+  }
+  (a[$2] == 0 || !($2 in a)) && $3 == "running" {
+    a[$2] = $1
+  }
+  { c[$2] = $4 }
+  END {
+    for (k in a) {
+      print k, int(b[k]/60), c[k]
+    }
+  }
+  ' |
+filter |
+sort -n -k2,2 |
+awk -F'\t' -v OFS='\t' '
+  {
+    print $1, sprintf("%3d:%02d", int($2/60), $2 % 60), $3
+  }
+  '

@@ -1,0 +1,7 @@
+#!/bin/bash
+set -e
+set -o pipefail
+set -u
+
+HERE=$(dirname "$BASH_SOURCE")
+exec vim -S "$HERE"/vitt.vim ~/work.tl

@@ -1,0 +1,3 @@
+#!/bin/bash
+set -euo pipefail
+awk -F'\t' '/^-- log$/ { exit } $2 == "running" { print $3 }' ~/work.tl
